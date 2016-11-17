@@ -8,7 +8,7 @@ done
 
 [jixing@log01 liuyouhua_20161029]$ 
 ls alignment/*.bam | while read id; 
-sampleID=` echo $id | cut -d "/" -f 2 | cut -d "." -f 1`; 
+sampleID=` echo $id | cut -d "/" -f 2 | cut -d "." -f 1` | unique; 
 do 
 echo $sampleID;
 done > ID.txt
