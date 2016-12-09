@@ -1,0 +1,66 @@
+#用 "res.csv" 作为输入
+genelist2subsetdf<- function(enrichr_table="ENCODE_Histone_Modifications_2015_table.csv",TERM="H3K27me3_kidney_mm9",res){
+        enrichr_HM <- read.csv(enrichr_table)#先要从富集的table中得到genelist
+        colnames(enrichr_HM)
+        H3K27me3 <-enrichr_HM[enrichr_HM$Term==TERM,7]
+        H3K27me3 <- as.character(H3K27me3) 
+        H3K27me3 <- unlist(strsplit(H3K27me3, ";"))#这个就是我们要的list
+        genelist <- H3K27me3
+        res.05 <- read.csv(res)#读入差异分析结果表
+        res.05 <- res.05[,-1]
+        rownames(res.05) <- toupper(res.05$symbo)
+        idx <- NULL
+        for (i in 1:length(genelist)){
+                idx[i]<- which(rownames(res.05)==genelist[i])
+        }
+        subsetdf<- res.05[idx,]#得到一个数据框结果,
+                               #如果还想要metadata,就必须要用dds直接得到的res.05,而不是读进去的
+        return(subsetdf)
+        
+}
+epithelial<- genelist2subsetdf(enrichr_table = "ENCODE_Histone_Modifications_2015_table.csv",TERM = "H3K27me3_kidney epithelial cell_hg19",res="results.05.csv")
+dim(epithelial)
+head(epithelial)
+
+#yong count jieguo zuowei shuru
+genelist2subsetdf<- function(enrichr_table="ENCODE_Histone_Modifications_2015_table.csv",TERM="H3K27me3_kidney_mm9",dds){
+        enrichr_HM <- read.csv(enrichr_table)#先要从富集的table中得到genelist
+        colnames(enrichr_HM)
+        H3K27me3 <-enrichr_HM[enrichr_HM$Term==TERM,7]
+        H3K27me3 <- as.character(H3K27me3) 
+        H3K27me3 <- unlist(strsplit(H3K27me3, ";"))#这个就是我们要的list
+        genelist <- H3K27me3
+        rownames(dds) <- toupper(rownames(dds))
+        idx <- NULL
+        for (i in 1:length(genelist)){
+                idx[i]<- which(rownames(res.05)==genelist[i])
+        }
+        subsetdf<- dds[idx]#得到一个数据框结果,
+        #如果还想要metadata,就必须要用dds直接得到的res.05,而不是读进去的
+        return(subsetdf)
+        
+}
+dds_epithelial<- genelist2subsetdf(enrichr_table = "ENCODE_Histone_Modifications_2015_table.csv","H3K27me3_kidney epithelial cell_hg19",dds = dds)
+#Gene clustering
+
+genelist2heatmap<- function(enrichr_table="ENCODE_Histone_Modifications_2015_table.csv",TERM="H3K27me3_kidney_mm9",dds){
+        enrichr_HM <- read.csv(enrichr_table)#先要从富集的table中得到genelist
+        colnames(enrichr_HM)
+        H3K27me3 <-enrichr_HM[enrichr_HM$Term==TERM,7]
+        H3K27me3 <- as.character(H3K27me3) 
+        H3K27me3 <- unlist(strsplit(H3K27me3, ";"))#这个就是我们要的list
+        genelist <- H3K27me3
+        rownames(dds) <- toupper(rownames(dds))
+        rld <- rlog(dds, blind=FALSE)
+        idx <- NULL
+        for (i in 1:length(genelist)){
+                idx[i]<- which(rownames(dds)==genelist[i])
+        }#利用list取子集的重要循环
+        library("genefilter")
+        mat <- assay(rld)[idx,]
+        mat <- mat - rowMeans(mat)
+        df <- as.data.frame(colData(rld)[,c("SampleName","type")])
+        pheatmap(mat, annotation_col=df)
+
+}
+genelist2heatmap(dds = dds)
